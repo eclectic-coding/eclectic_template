@@ -8,24 +8,33 @@ def source_paths
 end
 
 def add_gems
-  gem 'devise', '~> 4.7', '>= 4.7.2'
-  gem 'friendly_id', '~> 5.3'
-  gem 'sidekiq', '~> 6.1', '>= 6.1.1'
-  gem 'name_of_person', '~> 1.1', '>= 1.1.1'
+  gem "devise", "~> 4.7", ">= 4.7.2"
+  gem "friendly_id", "~> 5.3"
+  gem "sidekiq", "~> 6.1", ">= 6.1.1"
+  gem "name_of_person", "~> 1.1", ">= 1.1.1"
 
   gem_group :development, :test do
-    gem 'database_cleaner'
+    gem "database_cleaner"
     gem "factory_bot_rails", git: "http://github.com/thoughtbot/factory_bot_rails"
-    gem 'rspec-rails'
+    gem "rspec-rails"
   end
 
   gem_group :development do
-    gem 'fuubar'
-    gem 'guard'
-    gem 'guard-rspec'
+    gem "fuubar"
+    gem "guard"
+    gem "guard-rspec"
   end
 
   say "Gems added successfully 👍", :blue
+end
+
+def add_testing
+  generate "rspec:install"
+  say "Testing environment setup successfully 👍", :blue
+end
+
+def stop_spring
+  run "spring stop"
 end
 
 def add_users
@@ -34,7 +43,7 @@ def add_users
 
   # Configure Devise
   environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }",
-              env: 'development'
+              env: "development"
 
   route "root to: 'home#index'"
 
@@ -53,10 +62,15 @@ end
 
 def copy_templates
   directory "app", force: true
+  directory "spec", force: true
 
-  # copy rails_helper.rb
-  # copy .rspec
-  # copy Guardfile
+  run "rm -r test" if Dir.exist?("test")
+
+  copy_file ".rspec"
+  copy_file ".rubocop.yml"
+  copy_file ".simplecov"
+  copy_file "Guardfile"
+
 end
 
 def add_tailwind
@@ -112,6 +126,8 @@ source_paths
 add_gems
 
 after_bundle do
+  stop_spring
+  add_testing
   add_users
   remove_app_css
   add_sidekiq
