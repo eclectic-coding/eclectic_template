@@ -45,7 +45,7 @@ def add_users
   environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }",
               env: "development"
 
-  route "root to: 'home#index'"
+  route "root to: 'static#home'"
 
   # Create Devise User
   generate :devise, "User", "first_name", "last_name", "admin:boolean"
@@ -66,7 +66,7 @@ def copy_templates
 
   run "rm -r test" if Dir.exist?("test")
 
-  copy_file ".rspec"
+  copy_file ".rspec", force: true
   copy_file ".rubocop.yml"
   copy_file ".simplecov"
   copy_file "Guardfile"
