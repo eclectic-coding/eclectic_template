@@ -23,6 +23,13 @@ def add_gems
     gem "fuubar"
     gem "guard"
     gem "guard-rspec"
+    gem "rubocop"
+    gem "rubocop-rails", require: false
+    gem "rubocop-rspec"
+  end
+
+  group :test do
+    gem 'simplecov', require: false
   end
 
   say "Gems added successfully 👍", :blue
