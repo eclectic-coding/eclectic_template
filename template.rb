@@ -1,9 +1,7 @@
-=begin
-Template Name: Kickoff - Tailwind CSS
-Author: Andy Leverenz
-Author URI: https://web-crunch.com
-Instructions: $ rails new myapp -d <postgresql, mysql, sqlite3> -m template.rb
-=end
+# Template Name: Kickoff - Tailwind CSS
+# Author: Andy Leverenz
+# Author URI: https://web-crunch.com
+# Instructions: $ rails new myapp -d <postgresql, mysql, sqlite3> -m template.rb
 
 def source_paths
   [File.expand_path(File.dirname(__FILE__))]
@@ -14,6 +12,20 @@ def add_gems
   gem 'friendly_id', '~> 5.3'
   gem 'sidekiq', '~> 6.1', '>= 6.1.1'
   gem 'name_of_person', '~> 1.1', '>= 1.1.1'
+
+  gem_group :development, :test do
+    gem 'database_cleaner'
+    gem "factory_bot_rails", git: "http://github.com/thoughtbot/factory_bot_rails"
+    gem 'rspec-rails'
+  end
+
+  gem_group :development do
+    gem 'fuubar'
+    gem 'guard'
+    gem 'guard-rspec'
+  end
+
+  say "Gems added successfully 👍", :blue
 end
 
 def add_users
@@ -31,7 +43,7 @@ def add_users
 
   # set admin boolean to false by default
   in_root do
-    migration = Dir.glob("db/migrate/*").max_by{ |f| File.mtime(f) }
+    migration = Dir.glob("db/migrate/*").max_by { |f| File.mtime(f) }
     gsub_file migration, /:admin/, ":admin, default: false"
   end
 
@@ -41,6 +53,10 @@ end
 
 def copy_templates
   directory "app", force: true
+
+  # copy rails_helper.rb
+  # copy .rspec
+  # copy Guardfile
 end
 
 def add_tailwind
@@ -51,7 +67,7 @@ def add_tailwind
 
   append_to_file("app/javascript/packs/application.js", 'import "stylesheets/application"')
   inject_into_file("./postcss.config.js",
-  "let tailwindcss = require('tailwindcss');\n",  before: "module.exports")
+                   "let tailwindcss = require('tailwindcss');\n", before: "module.exports")
   inject_into_file("./postcss.config.js", "\n    tailwindcss('./app/javascript/stylesheets/tailwind.config.js'),", after: "plugins: [")
 
   run "mkdir -p app/javascript/stylesheets/components"
@@ -71,8 +87,8 @@ def add_sidekiq
   environment "config.active_job.queue_adapter = :sidekiq"
 
   insert_into_file "config/routes.rb",
-    "require 'sidekiq/web'\n\n",
-    before: "Rails.application.routes.draw do"
+                   "require 'sidekiq/web'\n\n",
+                   before: "Rails.application.routes.draw do"
 
   content = <<-RUBY
     authenticate :user, lambda { |u| u.admin? } do
@@ -114,7 +130,7 @@ after_bundle do
   git commit: %Q{ -m "Initial commit" }
 
   say
-  say "Kickoff app successfully created! 👍", :green
+  say "Eclectic app successfully created! 👍", :green
   say
   say "Switch to your app by running:"
   say "$ cd #{app_name}", :yellow
