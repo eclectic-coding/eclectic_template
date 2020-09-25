@@ -1,6 +1,6 @@
-# Template Name: Kickoff - Tailwind CSS
-# Author: Andy Leverenz
-# Author URI: https://web-crunch.com
+# Template Name: Eclectic - Tailwind CSS
+# Author: Chuck Smith, https://chucksmith.dev
+# Credit: Andy Leverenz, https://web-crunch.com
 # Instructions: $ rails new myapp -d <postgresql, mysql, sqlite3> -m template.rb
 
 def source_paths
@@ -10,6 +10,7 @@ end
 def add_gems
   gem "devise", "~> 4.7", ">= 4.7.2"
   gem "friendly_id", "~> 5.3"
+  gem "image_processing"
   gem "sidekiq", "~> 6.1", ">= 6.1.1"
   gem "name_of_person", "~> 1.1", ">= 1.1.1"
 
@@ -28,16 +29,30 @@ def add_gems
     gem "rubocop-rspec"
   end
 
-  group :test do
+  gem_group :test do
     gem 'simplecov', require: false
   end
-
-  say "Gems added successfully 👍", :blue
 end
 
 def add_testing
   generate "rspec:install"
-  say "Testing environment setup successfully 👍", :blue
+
+  directory "spec", force: true
+
+  run "rm -r test" if Dir.exist?("test")
+
+  copy_file ".rspec", force: true
+  copy_file ".rubocop.yml"
+  copy_file ".simplecov"
+  copy_file "Guardfile"
+end
+
+def add_active_storage
+  rails_command 'active_storage:install'
+
+  environment "config.active_storage.service = :local",
+              env: "development"
+
 end
 
 def stop_spring
@@ -63,26 +78,18 @@ def add_users
     gsub_file migration, /:admin/, ":admin, default: false"
   end
 
-  # name_of_person gem
-  append_to_file("app/models/user.rb", "\nhas_person_name\n", after: "class User < ApplicationRecord")
+  # name_of_person gem & active storage attachment
+  append_to_file("app/models/user.rb", "\n\nhas_person_name\nhas_one_attached :avatar\n", after: ":recoverable, :rememberable, :validatable")
 end
 
 def copy_templates
   directory "app", force: true
-  directory "spec", force: true
-
-  run "rm -r test" if Dir.exist?("test")
-
-  copy_file ".rspec", force: true
-  copy_file ".rubocop.yml"
-  copy_file ".simplecov"
-  copy_file "Guardfile"
-
 end
 
 def add_tailwind
   run "yarn add tailwindcss"
   run "yarn add @fullhuman/postcss-purgecss"
+  run "yarn add tailwindcss-stimulus-components"
 
   run "mkdir -p app/javascript/stylesheets"
 
@@ -98,6 +105,29 @@ def copy_postcss_config
   run "rm postcss.config.js"
   copy_file "postcss.config.js"
 end
+
+def add_fontawesome
+  run "yarn add @fortawesome/fontawesome-free"
+
+  # add reference to fontawesome-free to application.scss
+  inject_into_file 'app/javascript/stylesheets/application.scss' do <<~EOF
+	    @import '~@fortawesome/fontawesome-free';
+    EOF
+  end
+
+
+  # add requre of css/application.scss && import of fontawesome-free to application.js
+  inject_into_file 'app/javascript/packs/application.js' do <<~EOF
+    require("stylesheets/application.scss")
+    import "@fortawesome/fontawesome-free/js/all"
+    EOF
+  end
+end
+
+def add_stimulus
+  rails_command "webpacker:install:stimulus"
+end
+
 
 # Remove Application CSS
 def remove_app_css
@@ -135,12 +165,15 @@ add_gems
 after_bundle do
   stop_spring
   add_testing
+  add_active_storage
   add_users
   remove_app_css
   add_sidekiq
   add_foreman
   copy_templates
   add_tailwind
+  add_fontawesome
+  add_stimulus
   add_friendly_id
   copy_postcss_config
 
