@@ -163,6 +163,17 @@ def add_stimulus_navbar
   run "yarn add tailwindcss-stimulus-components"
 
   # inject
+  inject_into_file 'app/javascript/controllers/index.js' do
+    <<~EOF
+      // Import and register all TailwindCSS Components
+      import { Dropdown, Modal, Tabs, Popover, Toggle } from "tailwindcss-stimulus-components"
+      application.register('dropdown', Dropdown)
+      application.register('modal', Modal)
+      application.register('tabs', Tabs)
+      application.register('popover', Popover)
+      application.register('toggle', Toggle)
+    EOF
+  end
 
 end
 
