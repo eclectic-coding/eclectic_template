@@ -41,6 +41,7 @@ def add_testing
 
   run "rm -r test" if Dir.exist?("test")
 
+  copy_file "config/webpacker.yml", force: true
   copy_file ".rspec", force: true
   copy_file ".rubocop.yml"
   copy_file ".simplecov"
@@ -89,11 +90,10 @@ end
 def add_tailwind
   run "yarn add tailwindcss"
   run "yarn add @fullhuman/postcss-purgecss"
-  run "yarn add tailwindcss-stimulus-components"
 
   run "mkdir -p app/javascript/stylesheets"
 
-  append_to_file("app/javascript/packs/application.js", 'import "stylesheets/application"')
+  append_to_file("app/javascript/packs/application.js", 'import "stylesheets/application"' + "\n")
   inject_into_file("./postcss.config.js",
                    "let tailwindcss = require('tailwindcss');\n", before: "module.exports")
   inject_into_file("./postcss.config.js", "\n    tailwindcss('./app/javascript/stylesheets/tailwind.config.js'),", after: "plugins: [")
@@ -109,17 +109,19 @@ end
 def add_fontawesome
   run "yarn add @fortawesome/fontawesome-free"
 
-  # add reference to fontawesome-free to application.scss
-  inject_into_file 'app/javascript/stylesheets/application.scss' do <<~EOF
-	    @import '~@fortawesome/fontawesome-free';
+  # # add reference to fontawesome-free to application.scss
+  inject_into_file 'app/javascript/stylesheets/application.scss' do
+    <<~EOF
+      @import '~@fortawesome/fontawesome-free';
     EOF
   end
 
 
-  # add requre of css/application.scss && import of fontawesome-free to application.js
-  inject_into_file 'app/javascript/packs/application.js' do <<~EOF
-    require("stylesheets/application.scss")
-    import "@fortawesome/fontawesome-free/js/all"
+  # add require of css/application.scss && import of fontawesome-free to application.js
+  inject_into_file 'app/javascript/packs/application.js' do
+    <<~EOF
+      require("stylesheets/application.scss")
+      import "@fortawesome/fontawesome-free/js/all"
     EOF
   end
 end
@@ -157,6 +159,13 @@ def add_friendly_id
   generate "friendly_id"
 end
 
+def add_stimulus_navbar
+  run "yarn add tailwindcss-stimulus-components"
+
+  # inject
+
+end
+
 # Main setup
 source_paths
 
@@ -176,6 +185,7 @@ after_bundle do
   add_stimulus
   add_friendly_id
   copy_postcss_config
+  add_stimulus_navbar
 
   # Migrate
   rails_command "db:create"

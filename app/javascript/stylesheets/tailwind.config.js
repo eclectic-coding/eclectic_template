@@ -1,8 +1,4 @@
 module.exports = {
-  future: {
-    removeDeprecatedGapUtilities: true,
-    purgeLayersByDefault: true,
-  },
   target: 'relaxed',
   prefix: '',
   important: false,
